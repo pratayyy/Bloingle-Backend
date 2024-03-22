@@ -20,7 +20,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.2.3",
     "nanoid": "^5.0.6",
-    "ndb": "^1.1.5"
+    "ndb": "^1.1.5",
+    "validator": "^13.11.0"
   },
   "devDependencies": {
     "eslint": "^8.57.0",
