@@ -6,8 +6,7 @@ const handleCastErrorDB = (err) => {
 };
 
 const handleDuplicateFieldsDB = (err) => {
-  // const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0]; (err.errmsg does not exist in the current version of mongoose)
-  const value = err.keyValue.name;
+  const value = Object.keys(err.keyValue)[0].split('.')[1];
   const message = `Duplicate field value: ${value}. Please use another value!`;
   return new AppError(message, 400);
 };
@@ -25,7 +24,6 @@ const handleJWTExpiredError = () =>
   new AppError('Your token has expired! Please log in again', 401);
 
 const sendErrorDev = (err, req, res) => {
-  // A) API
   if (req.originalUrl.startsWith('/api')) {
     res.status(err.statusCode).json({
       status: err.status,
@@ -34,7 +32,6 @@ const sendErrorDev = (err, req, res) => {
       stack: err.stack,
     });
   } else {
-    // B) RENDERED WEBSITE
     res.status(err.statusCode).render('error', {
       title: 'Something went wrong!',
       msg: err.message,
@@ -43,9 +40,7 @@ const sendErrorDev = (err, req, res) => {
 };
 
 const sendErrorProd = (err, req, res) => {
-  // A) API
   if (req.originalUrl.startsWith('/api')) {
-    // 1) Operational, trusted error: send message to client
     if (err.isOperational) {
       return res.status(err.statusCode).json({
         status: err.status,
@@ -53,18 +48,13 @@ const sendErrorProd = (err, req, res) => {
       });
     }
 
-    // 2) Programming or other unknown error: don't leak error details
-    // 2A) Log error
     console.error('ERROR 💥', err);
-    // 2B) Send generic message
     return res.status(500).json({
       status: 'error',
       message: 'Something went wrong!',
     });
   }
 
-  // B) RENDERED WEBSITE
-  // 1) Operational, trusted error: send message to client
   if (err.isOperational) {
     return res.status(err.statusCode).render('error', {
       title: 'Something went wrong!',
@@ -72,10 +62,7 @@ const sendErrorProd = (err, req, res) => {
     });
   }
 
-  // 2) Programming or other unknown error: don't leak error details
-  // 2A) Log error
   console.error('ERROR 💥', err);
-  // 2B) Send generic message
   return res.status(err.statusCode).render('error', {
     title: 'Something went wrong!',
     msg: 'Please try again later.',
@@ -89,7 +76,6 @@ module.exports = (err, req, res, next) => {
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, req, res);
   } else if (process.env.NODE_ENV === 'production') {
-    // ..err doesn't have the name property, so we need to spread the err object into a new object and then add the name property to it
     let error = { ...err, name: err.name };
 
     if (error.name === 'CastError') error = handleCastErrorDB(error);

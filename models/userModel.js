@@ -35,12 +35,12 @@ const userSchema = mongoose.Schema(
     personalInfo: {
       name: {
         type: String,
-        required: [true, 'Please provide your name!'],
+        required: [true, 'Please provide your name'],
         minlength: [3, 'Name must be atleast 3 characters'],
       },
       email: {
         type: String,
-        required: [true, 'Please provide your email!'],
+        required: [true, 'Please provide your email'],
         unique: true,
         lowercase: true,
         validate: [validator.isEmail, 'Please provide a valid email'],
@@ -122,8 +122,11 @@ const userSchema = mongoose.Schema(
 );
 
 userSchema.pre('save', async function (next) {
-  this.personalInfo.username = this.email.split('@')[0];
-  this.personalInfo.password = bcrypt.hash(this.password, 12);
+  this.personalInfo.username = this.personalInfo.email.split('@')[0];
+  this.personalInfo.password = await bcrypt.hash(
+    this.personalInfo.password,
+    12,
+  );
   next();
 });
 
