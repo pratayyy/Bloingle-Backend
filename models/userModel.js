@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
 
 const profileImagesNameList = [
   'Garfield',
@@ -119,6 +120,12 @@ const userSchema = mongoose.Schema(
     },
   },
 );
+
+userSchema.pre('save', async function (next) {
+  this.personalInfo.username = this.email.split('@')[0];
+  this.personalInfo.password = bcrypt.hash(this.password, 12);
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 
