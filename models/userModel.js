@@ -52,18 +52,18 @@ const userSchema = mongoose.Schema(
       },
       username: {
         type: String,
-        minlength: [3, 'Username must be 3 letters long'],
+        minlength: [3, 'Username must be atleast 3 characters long'],
         unique: true,
       },
       bio: {
         type: String,
-        maxlength: [200, 'Bio should not be more than 200'],
+        maxlength: [200, 'Bio should be less than or equal to 200'],
         default: '',
       },
       photo: {
         type: String,
         default: () => {
-          return `https://api.dicebear.com/6.x/${profileImagesNameList[Math.floor(Math.random() * profileImagesNameList.length)]}/svg?seed=${profileImagesNameList[Math.floor(Math.random() * profileImagesNameList.length)]}`;
+          return `https://api.dicebear.com/6.x/${profileImagesCollectionsList[Math.floor(Math.random() * profileImagesCollectionsList.length)]}/svg?seed=${profileImagesNameList[Math.floor(Math.random() * profileImagesNameList.length)]}`;
         },
       },
     },
@@ -103,7 +103,7 @@ const userSchema = mongoose.Schema(
         default: 0,
       },
     },
-    google_auth: {
+    googleAuth: {
       type: Boolean,
       default: false,
     },

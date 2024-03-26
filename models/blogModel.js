@@ -32,7 +32,7 @@ const blogSchema = mongoose.Schema(
     },
     author: {
       type: mongoose.Schema.ObjectId,
-      required: true,
+      required: [true, 'A blog must have a author'],
       ref: 'User',
     },
     activity: {
