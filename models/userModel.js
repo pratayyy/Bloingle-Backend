@@ -47,7 +47,12 @@ const userSchema = mongoose.Schema(
       },
       password: {
         type: String,
-        required: [true, 'Please provide a password'],
+        required: [
+          function () {
+            return !this.googleAuth;
+          },
+          'Please provide a password',
+        ],
         minlength: 8,
         select: false,
       },
@@ -123,10 +128,12 @@ const userSchema = mongoose.Schema(
 
 userSchema.pre('save', async function (next) {
   this.personalInfo.username = this.personalInfo.email.split('@')[0];
-  this.personalInfo.password = await bcrypt.hash(
-    this.personalInfo.password,
-    12,
-  );
+  if (!this.googleAuth) {
+    this.personalInfo.password = await bcrypt.hash(
+      this.personalInfo.password,
+      12,
+    );
+  }
   next();
 });
 

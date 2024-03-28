@@ -1,12 +1,18 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const admin = require('firebase-admin');
 
+const serviceAccountKey = require('./bloingle-firebase-adminsdk-68lpx-cb81476ee7.json');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const userRouter = require('./routes/userRoute');
 
 const app = express();
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccountKey),
+});
 
 app.enable('trust proxy');
 
