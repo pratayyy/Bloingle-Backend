@@ -31,11 +31,6 @@ const sendErrorDev = (err, req, res) => {
       message: err.message,
       stack: err.stack,
     });
-  } else {
-    res.status(err.statusCode).render('error', {
-      title: 'Something went wrong!',
-      msg: err.message,
-    });
   }
 };
 
@@ -54,19 +49,6 @@ const sendErrorProd = (err, req, res) => {
       message: 'Something went wrong!',
     });
   }
-
-  if (err.isOperational) {
-    return res.status(err.statusCode).render('error', {
-      title: 'Something went wrong!',
-      msg: err.message,
-    });
-  }
-
-  console.error('ERROR 💥', err);
-  return res.status(err.statusCode).render('error', {
-    title: 'Something went wrong!',
-    msg: 'Please try again later.',
-  });
 };
 
 module.exports = (err, req, res, next) => {
