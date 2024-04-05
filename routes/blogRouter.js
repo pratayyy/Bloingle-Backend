@@ -3,6 +3,8 @@ const blogController = require('../controllers/blogController');
 
 const router = express.Router();
 
-router.get('/get-upload-url', blogController.generateUploadUrl);
+router.route('/get-upload-url').get(blogController.generateUploadUrl);
+
+router.route('/').post(blogController.createBlog);
 
 module.exports = router;
