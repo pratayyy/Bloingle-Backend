@@ -8,7 +8,7 @@ const blogSchema = mongoose.Schema(
     title: {
       type: String,
       required: [true, 'A blog must have title'],
-      maxlength: [40, 'A blog name must have less or equal then 40 characters'],
+      maxlength: [80, 'A blog name must have less or equal then 40 characters'],
       minlength: [8, 'A blog name must have more or equal then 10 characters'],
     },
     slug: String,
@@ -25,8 +25,8 @@ const blogSchema = mongoose.Schema(
       ],
     },
     content: {
-      type: [],
-      required: true,
+      type: Object,
+      required: [true, 'A blog must have content'],
       validate: {
         validator: function (value) {
           return (
@@ -41,9 +41,19 @@ const blogSchema = mongoose.Schema(
       },
     },
     tags: {
-      type: [String],
-      required: [true, 'A blog must have some tags'],
-      maxlength: [10, 'A blog can have a maximum of 10 tags'],
+      type: [
+        {
+          type: String,
+          trim: true,
+        },
+      ],
+      required: [true, 'A blog must have atleast 1 tag'],
+      validate: {
+        validator: function (tagsArray) {
+          return tagsArray.length > 0 && tagsArray.length <= 10;
+        },
+        messsage: 'A blog must have some tags',
+      },
     },
     author: {
       type: mongoose.Schema.ObjectId,
