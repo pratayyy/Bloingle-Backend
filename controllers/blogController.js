@@ -54,12 +54,28 @@ exports.getAllBlog = catchAsync(async (req, res, next) => {
 
   const blogs = await Blog.find({ draft: false })
     .sort({ publishedAt: -1 })
-    .select('title slug banner description tags publishedAt -_id')
+    .select('title slug banner description tags activity publishedAt')
     .limit(limit);
 
   res.status(200).json({
     status: 'success',
     results: blogs.length,
+    blogs,
+  });
+});
+
+exports.getTrendingBlog = catchAsync(async (req, res, next) => {
+  const blogs = await Blog.find({ draft: false })
+    .sort({
+      'activity.totalReads': -1,
+      'activity.totalLikes': -1,
+      publishedAt: -1,
+    })
+    .select('title slug publishedAt')
+    .limit(5);
+
+  res.status(200).json({
+    status: 'success',
     blogs,
   });
 });
