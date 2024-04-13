@@ -14,11 +14,21 @@ const blogSchema = mongoose.Schema(
     slug: String,
     banner: {
       type: String,
-      required: [true, 'A blog must have a banner'],
+      required: [
+        function () {
+          return !this.draft;
+        },
+        'A blog must have a banner',
+      ],
     },
     description: {
       type: String,
-      required: [true, 'A blog must have a description'],
+      required: [
+        function () {
+          return !this.draft;
+        },
+        'A blog must have a description',
+      ],
       maxlength: [
         200,
         'A blog must have description less then or equal to 200 characters',
@@ -26,7 +36,12 @@ const blogSchema = mongoose.Schema(
     },
     content: {
       type: Object,
-      required: [true, 'A blog must have content'],
+      required: [
+        function () {
+          return !this.draft;
+        },
+        'A blog must have content',
+      ],
       validate: {
         validator: function (value) {
           return (
@@ -47,13 +62,12 @@ const blogSchema = mongoose.Schema(
           trim: true,
         },
       ],
-      required: [true, 'A blog must have atleast 1 tag'],
-      validate: {
-        validator: function (tagsArray) {
-          return tagsArray.length > 0 && tagsArray.length <= 10;
+      required: [
+        function () {
+          return !this.draft;
         },
-        messsage: 'A blog must have some tags',
-      },
+        'A blog must have atleast 1 tag',
+      ],
     },
     author: {
       type: mongoose.Schema.ObjectId,
