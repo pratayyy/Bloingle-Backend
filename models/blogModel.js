@@ -108,6 +108,15 @@ const blogSchema = mongoose.Schema(
   },
 );
 
+blogSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'author',
+    select: 'personalInfo.name personalInfo.username personalInfo.photo -_id',
+  });
+
+  next();
+});
+
 blogSchema.pre('save', function (next) {
   this.tags = this.tags.map((tag) => tag.toLowerCase());
   this.slug = slugify(this.title, { lower: true });

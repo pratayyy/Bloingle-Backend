@@ -48,3 +48,18 @@ exports.createBlog = catchAsync(async (req, res, next) => {
     blog,
   });
 });
+
+exports.getAllBlog = catchAsync(async (req, res, next) => {
+  const limit = 5;
+
+  const blogs = await Blog.find({ draft: false })
+    .sort({ publishedAt: -1 })
+    .select('title slug banner description tags publishedAt -_id')
+    .limit(limit);
+
+  res.status(200).json({
+    status: 'success',
+    results: blogs.length,
+    blogs,
+  });
+});

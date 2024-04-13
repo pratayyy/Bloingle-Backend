@@ -7,6 +7,9 @@ const router = express.Router();
 
 router.route('/get-upload-url').get(blogController.generateUploadUrl);
 
-router.route('/').post(authController.protect, blogController.createBlog);
+router
+  .route('/')
+  .get(blogController.getAllBlog)
+  .post(authController.protect, blogController.createBlog);
 
 module.exports = router;
