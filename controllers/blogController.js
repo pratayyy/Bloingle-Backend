@@ -2,6 +2,7 @@ const aws = require('aws-sdk');
 const { nanoid } = require('nanoid');
 
 const Blog = require('../models/blogModel');
+const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 
 const s3 = new aws.S3({
@@ -27,7 +28,20 @@ exports.generateUploadUrl = catchAsync(async (req, res, next) => {
 });
 
 exports.createBlog = catchAsync(async (req, res, next) => {
-  const blog = await Blog.create(req.body);
+  const author = req.user;
+  const { title, banner, description, tags, content, draft } = req.body;
+
+  const blog = await Blog.create({
+    title,
+    banner,
+    description,
+    tags,
+    content,
+    author,
+    draft: Boolean(draft),
+  });
+
+  await User.findByIdAndUpdate({ _id: author }, { $push: { blogs: blog._id } });
 
   res.status(201).json({
     status: 'success',
