@@ -9,6 +9,8 @@ router.route('/get-upload-url').get(blogController.generateUploadUrl);
 
 router.route('/get-trending-blog').get(blogController.getTrendingBlog);
 
+router.route('/get-blog-by-category').post(blogController.getBlogByCategory);
+
 router
   .route('/')
   .get(blogController.getAllBlog)

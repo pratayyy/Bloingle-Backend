@@ -79,3 +79,21 @@ exports.getTrendingBlog = catchAsync(async (req, res, next) => {
     blogs,
   });
 });
+
+exports.getBlogByCategory = catchAsync(async (req, res, next) => {
+  const { tag } = req.body;
+  const limit = 5;
+
+  const findQuery = { tags: tag, draft: false };
+
+  const blogs = await Blog.find(findQuery)
+    .sort({ publishedAt: -1 })
+    .select('title slug banner description tags activity publishedAt')
+    .limit(limit);
+
+  res.status(200).json({
+    status: 'success',
+    results: blogs.length,
+    blogs,
+  });
+});
