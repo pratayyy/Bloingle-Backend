@@ -49,12 +49,27 @@ exports.createBlog = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getBlogCount = catchAsync(async (req, res, next) => {
+  const findQuery = { draft: false };
+  if (req.params.category) {
+    findQuery.tags = req.params.category;
+  }
+
+  const totalDocs = await Blog.countDocuments(findQuery);
+
+  res.status(200).json({
+    status: 'success',
+    totalDocs,
+  });
+});
+
 exports.getAllBlog = catchAsync(async (req, res, next) => {
-  const limit = 5;
+  const { page, limit = 5 } = req.query;
 
   const blogs = await Blog.find({ draft: false })
     .sort({ publishedAt: -1 })
     .select('title slug banner description tags activity publishedAt')
+    .skip((page - 1) * limit)
     .limit(limit);
 
   res.status(200).json({
@@ -81,14 +96,15 @@ exports.getTrendingBlog = catchAsync(async (req, res, next) => {
 });
 
 exports.getBlogByCategory = catchAsync(async (req, res, next) => {
-  const { tag } = req.body;
-  const limit = 5;
+  const { page, limit = 5 } = req.query;
+  const { category: tag } = req.params;
 
   const findQuery = { tags: tag, draft: false };
 
   const blogs = await Blog.find(findQuery)
     .sort({ publishedAt: -1 })
     .select('title slug banner description tags activity publishedAt')
+    .skip((page - 1) * limit)
     .limit(limit);
 
   res.status(200).json({
