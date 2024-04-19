@@ -4,6 +4,7 @@ const { nanoid } = require('nanoid');
 const Blog = require('../models/blogModel');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
+const APIFeatures = require('../utils/apiFeatures');
 
 const s3 = new aws.S3({
   region: 'ap-south-1',
@@ -50,12 +51,9 @@ exports.createBlog = catchAsync(async (req, res, next) => {
 });
 
 exports.getBlogCount = catchAsync(async (req, res, next) => {
-  const findQuery = { draft: false };
-  if (req.params.category) {
-    findQuery.tags = req.params.category;
-  }
+  const filter = { draft: false, ...req.query };
 
-  const totalDocs = await Blog.countDocuments(findQuery);
+  const totalDocs = await Blog.countDocuments(filter);
 
   res.status(200).json({
     status: 'success',
@@ -64,48 +62,15 @@ exports.getBlogCount = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllBlog = catchAsync(async (req, res, next) => {
-  const { page, limit = 5 } = req.query;
+  const filter = { draft: false };
 
-  const blogs = await Blog.find({ draft: false })
-    .sort({ publishedAt: -1 })
-    .select('title slug banner description tags activity publishedAt')
-    .skip((page - 1) * limit)
-    .limit(limit);
+  const features = new APIFeatures(Blog.find(filter), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
 
-  res.status(200).json({
-    status: 'success',
-    results: blogs.length,
-    blogs,
-  });
-});
-
-exports.getTrendingBlog = catchAsync(async (req, res, next) => {
-  const blogs = await Blog.find({ draft: false })
-    .sort({
-      'activity.totalReads': -1,
-      'activity.totalLikes': -1,
-      publishedAt: -1,
-    })
-    .select('title slug publishedAt')
-    .limit(5);
-
-  res.status(200).json({
-    status: 'success',
-    blogs,
-  });
-});
-
-exports.getBlogByCategory = catchAsync(async (req, res, next) => {
-  const { page, limit = 5 } = req.query;
-  const { category: tag } = req.params;
-
-  const findQuery = { tags: tag, draft: false };
-
-  const blogs = await Blog.find(findQuery)
-    .sort({ publishedAt: -1 })
-    .select('title slug banner description tags activity publishedAt')
-    .skip((page - 1) * limit)
-    .limit(limit);
+  const blogs = await features.query;
 
   res.status(200).json({
     status: 'success',

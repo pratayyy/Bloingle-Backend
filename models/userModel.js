@@ -112,6 +112,7 @@ const userSchema = mongoose.Schema(
     googleAuth: {
       type: Boolean,
       default: false,
+      select: false,
     },
     blogs: {
       type: [mongoose.Schema.ObjectId],

@@ -10,4 +10,6 @@ router.post('/google-auth', authController.googleAuth);
 
 router.route('/').get(userController.getAllUsers);
 
+router.route('/:username').get(userController.getUser);
+
 module.exports = router;
