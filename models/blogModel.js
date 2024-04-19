@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 
-const User = require('./userModel');
-
 const blogSchema = mongoose.Schema(
   {
     title: {
@@ -121,43 +119,6 @@ blogSchema.pre('save', function (next) {
   this.tags = this.tags.map((tag) => tag.toLowerCase());
   this.slug = slugify(this.title, { lower: true });
   next();
-});
-
-blogSchema.statics.calcTotalPosts = async function (userId) {
-  const stats = await this.aggregate([
-    {
-      $match: { author: userId },
-    },
-    {
-      $group: {
-        _id: '$author',
-        numberOfPosts: { $sum: 1 },
-      },
-    },
-  ]);
-
-  if (stats.length > 0) {
-    await User.findByIdAndUpdate(userId, {
-      'accountInfo.totalPosts': stats[0].numberOfPosts,
-    });
-  } else {
-    await User.findByIdAndUpdate(userId, {
-      'accountInfo.totalPosts': 0,
-    });
-  }
-};
-
-blogSchema.post('save', function () {
-  if (!this.draft) this.constructor.calcTotalPosts(this.author);
-});
-
-blogSchema.pre(/^findOneAnd/, async function (next) {
-  this.b = await this.findOne();
-  next();
-});
-
-blogSchema.pre(/^findOneAnd/, async function () {
-  await this.b.constructor.calcTotalPosts(this.b.author);
 });
 
 const Blog = mongoose.model('Blog', blogSchema);

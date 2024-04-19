@@ -5,20 +5,23 @@ class APIFeatures {
   }
 
   filter() {
-    const queryObj = { ...this.queryString };
+    let queryObj = { ...this.queryString };
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     excludedFields.forEach((el) => delete queryObj[el]);
 
-    // let queryStr = JSON.stringify(queryObj);
-    // queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(
+      /\b(gte|gt|lte|lt|ne)\b/g,
+      (match) => `$${match}`,
+    );
+
+    queryObj = JSON.parse(queryStr);
 
     Object.keys(queryObj).forEach((key) => {
-      if (key !== 'author') {
+      if (key !== 'author' && key !== 'slug') {
         queryObj[key] = new RegExp(queryObj[key], 'i');
       }
     });
-
-    console.log(queryObj);
 
     // this.query = this.query.find(JSON.parse(queryStr));
     this.query = this.query.find(queryObj);

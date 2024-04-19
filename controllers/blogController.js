@@ -5,6 +5,7 @@ const Blog = require('../models/blogModel');
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const APIFeatures = require('../utils/apiFeatures');
+const AppError = require('../utils/appError');
 
 const s3 = new aws.S3({
   region: 'ap-south-1',
@@ -42,7 +43,15 @@ exports.createBlog = catchAsync(async (req, res, next) => {
     draft: Boolean(draft),
   });
 
-  await User.findByIdAndUpdate({ _id: author }, { $push: { blogs: blog._id } });
+  const incrementValue = draft ? 0 : 1;
+
+  await User.findByIdAndUpdate(
+    { _id: author },
+    {
+      $inc: { 'accountInfo.totalPosts': incrementValue },
+      $push: { blogs: blog._id },
+    },
+  );
 
   res.status(201).json({
     status: 'success',
@@ -76,5 +85,28 @@ exports.getAllBlog = catchAsync(async (req, res, next) => {
     status: 'success',
     results: blogs.length,
     blogs,
+  });
+});
+
+exports.getBlog = catchAsync(async (req, res, next) => {
+  const { slug } = req.params;
+
+  const incrementValue = 1;
+
+  const blog = await Blog.findOneAndUpdate(
+    { slug },
+    { $inc: { 'activity.totalReads': incrementValue } },
+  );
+
+  if (!blog) return next(new AppError("Couldn't find blog", 404));
+
+  await User.findOneAndUpdate(
+    { 'personalInfo.username': blog.author.personalInfo.username },
+    { $inc: { 'accountInfo.totalReads': incrementValue } },
+  );
+
+  res.status(200).json({
+    results: 'success',
+    blog,
   });
 });

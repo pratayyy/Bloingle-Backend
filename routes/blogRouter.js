@@ -14,4 +14,6 @@ router
   .get(blogController.getAllBlog)
   .post(authController.protect, blogController.createBlog);
 
+router.route('/:slug').get(blogController.getBlog);
+
 module.exports = router;
