@@ -3,6 +3,7 @@ const { nanoid } = require('nanoid');
 
 const Blog = require('../models/blogModel');
 const User = require('../models/userModel');
+const Notification = require('../models/notificationModel');
 const catchAsync = require('../utils/catchAsync');
 const APIFeatures = require('../utils/apiFeatures');
 const AppError = require('../utils/appError');
@@ -118,7 +119,55 @@ exports.getBlog = catchAsync(async (req, res, next) => {
     return next(new AppError('You cannot access draft blogs', 500));
 
   res.status(200).json({
-    results: 'success',
+    status: 'success',
     blog,
+  });
+});
+
+exports.updateBlogLike = catchAsync(async (req, res, next) => {
+  const { user } = req;
+  const { id } = req.params;
+  const { isLikedByUser } = req.body;
+
+  const incrementValue = !isLikedByUser ? 1 : -1;
+
+  const blog = await Blog.findByIdAndUpdate(
+    { _id: id },
+    { $inc: { 'activity.totalLikes': incrementValue } },
+  );
+
+  if (!isLikedByUser) {
+    const notification = await Notification.create({
+      type: 'like',
+      blog: id,
+      notificationFor: blog.author._id,
+      user,
+    });
+
+    res.status(200).json({
+      status: 'success',
+      notification,
+      likedByUser: true,
+    });
+  } else {
+    await Notification.findOneAndDelete({ user, type: 'like', blog: id });
+
+    res.status(200).json({
+      status: 'success',
+      notification: null,
+      likedByUser: false,
+    });
+  }
+});
+
+exports.getUserLikeStatus = catchAsync(async (req, res, next) => {
+  const { user } = req;
+  const { id } = req.params;
+
+  const result = await Notification.exists({ user, type: 'like', blog: id });
+
+  res.status(200).json({
+    status: 'success',
+    result,
   });
 });

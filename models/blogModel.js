@@ -109,7 +109,7 @@ const blogSchema = mongoose.Schema(
 blogSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'author',
-    select: 'personalInfo.name personalInfo.username personalInfo.photo -_id',
+    select: 'personalInfo.name personalInfo.username personalInfo.photo',
   });
 
   next();
