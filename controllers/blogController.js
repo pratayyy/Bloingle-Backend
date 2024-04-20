@@ -31,27 +31,35 @@ exports.generateUploadUrl = catchAsync(async (req, res, next) => {
 
 exports.createBlog = catchAsync(async (req, res, next) => {
   const author = req.user;
-  const { title, banner, description, tags, content, draft } = req.body;
+  const { title, banner, description, tags, content, draft, slug } = req.body;
+  let blog;
 
-  const blog = await Blog.create({
-    title,
-    banner,
-    description,
-    tags,
-    content,
-    author,
-    draft: Boolean(draft),
-  });
+  if (slug) {
+    blog = await Blog.findOneAndUpdate(
+      { slug },
+      { title, banner, description, tags, content, draft: Boolean(draft) },
+    );
+  } else {
+    blog = await Blog.create({
+      title,
+      banner,
+      description,
+      tags,
+      content,
+      author,
+      draft: Boolean(draft),
+    });
 
-  const incrementValue = draft ? 0 : 1;
+    const incrementValue = draft ? 0 : 1;
 
-  await User.findByIdAndUpdate(
-    { _id: author },
-    {
-      $inc: { 'accountInfo.totalPosts': incrementValue },
-      $push: { blogs: blog._id },
-    },
-  );
+    await User.findByIdAndUpdate(
+      { _id: author },
+      {
+        $inc: { 'accountInfo.totalPosts': incrementValue },
+        $push: { blogs: blog._id },
+      },
+    );
+  }
 
   res.status(201).json({
     status: 'success',
@@ -90,20 +98,24 @@ exports.getAllBlog = catchAsync(async (req, res, next) => {
 
 exports.getBlog = catchAsync(async (req, res, next) => {
   const { slug } = req.params;
+  const { draft, mode } = req.query;
 
-  const incrementValue = 1;
+  const incrementValue = mode !== 'edit' ? 1 : 0;
 
   const blog = await Blog.findOneAndUpdate(
     { slug },
     { $inc: { 'activity.totalReads': incrementValue } },
   );
 
-  if (!blog) return next(new AppError("Couldn't find blog", 404));
+  if (!blog) return next(new AppError('Blog doesnot exist', 404));
 
   await User.findOneAndUpdate(
     { 'personalInfo.username': blog.author.personalInfo.username },
     { $inc: { 'accountInfo.totalReads': incrementValue } },
   );
+
+  if (blog.draft && !draft)
+    return next(new AppError('You cannot access draft blogs', 500));
 
   res.status(200).json({
     results: 'success',
