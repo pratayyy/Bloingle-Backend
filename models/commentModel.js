@@ -27,6 +27,7 @@ const commentSchema = mongoose.Schema(
     },
     isReply: {
       type: Boolean,
+      default: false,
     },
     parent: {
       type: mongoose.Schema.ObjectId,
@@ -39,6 +40,15 @@ const commentSchema = mongoose.Schema(
     },
   },
 );
+
+commentSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'commentedBy',
+    select: 'personalInfo.name personalInfo.username personalInfo.photo -_id',
+  });
+
+  next();
+});
 
 commentSchema.post('save', function () {
   this.populate({

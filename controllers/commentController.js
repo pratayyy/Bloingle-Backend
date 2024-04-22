@@ -3,6 +3,7 @@ const AppError = require('../utils/appError');
 const Comment = require('../models/commentModel');
 const Blog = require('../models/blogModel');
 const Notification = require('../models/notificationModel');
+const APIFeatures = require('../utils/apiFeatures');
 
 exports.createComment = catchAsync(async (req, res, next) => {
   const { user } = req;
@@ -38,5 +39,26 @@ exports.createComment = catchAsync(async (req, res, next) => {
   res.status(201).json({
     status: 'success',
     comment,
+  });
+});
+
+exports.getComments = catchAsync(async (req, res, next) => {
+  const { blogId } = req.params;
+
+  const filter = { blogId, isReply: false };
+
+  const features = new APIFeatures(Comment.find(filter), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const comments = await features.query;
+
+  //   const comments = await Comment.find({ blogId });
+
+  res.status(200).json({
+    status: 'success',
+    comments,
   });
 });
