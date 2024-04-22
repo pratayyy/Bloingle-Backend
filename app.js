@@ -7,7 +7,8 @@ const serviceAccountKey = require('./bloingle-firebase-adminsdk-68lpx-cb81476ee7
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const userRouter = require('./routes/userRoute');
-const blogRouter = require('./routes/blogRouter');
+const blogRouter = require('./routes/blogRoute');
+const commentRouter = require('./routes/commentRoute');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/blogs', blogRouter);
+app.use('/api/v1/comments', commentRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

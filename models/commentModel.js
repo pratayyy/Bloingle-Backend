@@ -12,7 +12,7 @@ const commentSchema = mongoose.Schema(
       required: true,
       ref: 'Blog',
     },
-    comment: {
+    content: {
       type: String,
       required: true,
     },
@@ -39,6 +39,13 @@ const commentSchema = mongoose.Schema(
     },
   },
 );
+
+commentSchema.post('save', function () {
+  this.populate({
+    path: 'commentedBy',
+    select: 'personalInfo.name personalInfo.username personalInfo.photo',
+  });
+});
 
 const Comment = mongoose.model('Comment', commentSchema);
 
