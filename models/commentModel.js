@@ -50,13 +50,6 @@ commentSchema.pre(/^find/, function (next) {
   next();
 });
 
-commentSchema.post('save', function () {
-  this.populate({
-    path: 'commentedBy',
-    select: 'personalInfo.name personalInfo.username personalInfo.photo',
-  });
-});
-
 const Comment = mongoose.model('Comment', commentSchema);
 
 module.exports = Comment;
