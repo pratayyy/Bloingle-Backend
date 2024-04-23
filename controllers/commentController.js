@@ -75,7 +75,7 @@ exports.getReplies = catchAsync(async (req, res, next) => {
     select: '-updatedAt',
   });
 
-  if (!comment) return next(new AppError('Comment doesnot exist', 404));
+  if (!comment) return next(new AppError('No comment found with that ID', 404));
 
   const replies = comment.children;
 
@@ -83,4 +83,59 @@ exports.getReplies = catchAsync(async (req, res, next) => {
     status: 'success',
     replies,
   });
+});
+
+const deleteComments = async (id) => {
+  const comment = await Comment.findOneAndDelete({ _id: id });
+
+  if (comment.parent) {
+    await Comment.findOneAndUpdate(
+      { _id: comment.parent },
+      { $pull: { children: id } },
+    );
+  }
+
+  await Notification.findOneAndDelete({ comment: id });
+
+  await Notification.findOneAndDelete({ reply: id });
+
+  await Blog.findOneAndUpdate(
+    { _id: comment.blogId },
+    {
+      $pull: { comments: id },
+      $inc: {
+        'activity.totalComments': -1,
+        'activity.totalParentComments': comment.parent ? 0 : -1,
+      },
+    },
+  );
+
+  if (comment.children.length) {
+    comment.children.forEach((replies) => {
+      deleteComments(replies);
+    });
+  }
+};
+
+exports.deleteComment = catchAsync(async (req, res, next) => {
+  const { user } = req;
+
+  const { id } = req.params;
+
+  const comment = await Comment.findOne({ _id: id });
+
+  if (!comment) return next(new AppError('No comment found with that ID', 404));
+
+  if (
+    user === comment.commentedBy.toString() ||
+    user === comment.blogAuthor.toString()
+  ) {
+    await deleteComments(id);
+
+    res.status(204).json({ status: 'success' });
+  } else {
+    return next(
+      new AppError('User doesnot have access to delete comment', 403),
+    );
+  }
 });
