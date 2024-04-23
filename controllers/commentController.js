@@ -22,6 +22,11 @@ exports.createComment = catchAsync(async (req, res, next) => {
 
   const comment = await Comment.create(commentObj);
 
+  comment.populate({
+    path: 'commentedBy',
+    select: 'personalInfo.name personalInfo.username personalInfo.photo',
+  });
+
   await Blog.findByIdAndUpdate(
     { _id: blogId },
     {
