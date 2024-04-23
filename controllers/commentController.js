@@ -59,3 +59,28 @@ exports.createComment = catchAsync(async (req, res, next) => {
     comment,
   });
 });
+
+exports.getReplies = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const { skip } = req.query;
+
+  const comment = await Comment.findOne({ _id: id }).populate({
+    path: 'children',
+    options: { limit: 5, skip: skip, sort: { commentedAt: -1 } },
+    populate: {
+      path: 'commentedBy',
+      select: 'personalInfo.name personalInfo.username personalInfo.photo',
+    },
+    select: '-updatedAt',
+  });
+
+  if (!comment) return next(new AppError('Comment doesnot exist', 404));
+
+  const replies = comment.children;
+
+  res.status(200).json({
+    status: 'success',
+    replies,
+  });
+});

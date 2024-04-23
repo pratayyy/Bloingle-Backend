@@ -6,4 +6,6 @@ const router = express.Router();
 
 router.route('/').post(authController.protect, commentController.createComment);
 
+router.route('/:id').get(commentController.getReplies);
+
 module.exports = router;
