@@ -22,6 +22,8 @@ router
   .route('/:id')
   .patch(authController.protect, blogController.updateBlogLike);
 
+router.route('/:id/comments').get(blogController.getAllCommentsOnBlog);
+
 router.route('/:slug').get(blogController.getBlog);
 
 module.exports = router;

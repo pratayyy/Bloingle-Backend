@@ -41,15 +41,6 @@ const commentSchema = mongoose.Schema(
   },
 );
 
-commentSchema.pre(/^find/, function (next) {
-  this.populate({
-    path: 'commentedBy',
-    select: 'personalInfo.name personalInfo.username personalInfo.photo -_id',
-  });
-
-  next();
-});
-
 const Comment = mongoose.model('Comment', commentSchema);
 
 module.exports = Comment;

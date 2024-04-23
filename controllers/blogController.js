@@ -4,6 +4,8 @@ const { nanoid } = require('nanoid');
 const Blog = require('../models/blogModel');
 const User = require('../models/userModel');
 const Notification = require('../models/notificationModel');
+const Comment = require('../models/commentModel');
+
 const catchAsync = require('../utils/catchAsync');
 const APIFeatures = require('../utils/apiFeatures');
 const AppError = require('../utils/appError');
@@ -169,5 +171,30 @@ exports.getUserLikeStatus = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     result,
+  });
+});
+
+exports.getAllCommentsOnBlog = catchAsync(async (req, res, next) => {
+  const { id: blogId } = req.params;
+
+  const filter = { blogId, isReply: false };
+
+  const features = new APIFeatures(
+    Comment.find(filter).populate({
+      path: 'commentedBy',
+      select: 'personalInfo.name personalInfo.username personalInfo.photo',
+    }),
+    req.query,
+  )
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const comments = await features.query;
+
+  res.status(200).json({
+    status: 'success',
+    comments,
   });
 });
