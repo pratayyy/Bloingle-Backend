@@ -137,3 +137,27 @@ exports.protect = catchAsync(async (req, res, next) => {
   res.locals.user = currentUser.id;
   next();
 });
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  const { user: userId } = req;
+
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await User.findById(userId).select('+personalInfo.password');
+
+  if (user.googleAuth) {
+    return next(
+      new AppError('Google login detected, You cannot access password', 403),
+    );
+  }
+
+  if (!(await user.correctPassword(currentPassword))) {
+    return next(new AppError('Your current password is wrong.', 401));
+  }
+
+  user.personalInfo.password = newPassword;
+
+  await user.save();
+
+  createSendToken(user, 200, res);
+});

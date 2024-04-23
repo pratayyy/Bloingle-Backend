@@ -8,6 +8,12 @@ router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 router.post('/google-auth', authController.googleAuth);
 
+router.patch(
+  '/updateMyPassword',
+  authController.protect,
+  authController.updatePassword,
+);
+
 router.route('/').get(userController.getAllUsers);
 
 router.route('/:username').get(userController.getUser);
