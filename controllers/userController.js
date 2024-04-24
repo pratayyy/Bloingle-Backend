@@ -24,6 +24,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 
 exports.getUser = catchAsync(async (req, res, next) => {
   const { username } = req.params;
+
   const user = await User.findOne({ 'personalInfo.username': username });
 
   if (!user) return next(new AppError('No user found with that username', 404));
@@ -31,5 +32,22 @@ exports.getUser = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     user,
+  });
+});
+
+exports.updateUserPhoto = catchAsync(async (req, res, next) => {
+  const { url } = req.body;
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user,
+    {
+      'personalInfo.photo': url,
+    },
+    { new: true },
+  );
+
+  res.status(200).json({
+    status: 'success',
+    photo: updatedUser.personalInfo.photo,
   });
 });
