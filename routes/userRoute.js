@@ -16,5 +16,6 @@ router.use(authController.protect);
 
 router.patch('/updateMyPassword', authController.updatePassword);
 router.patch('/updateMyPhoto', userController.updateUserPhoto);
+router.patch('/updateMe', userController.updateMe);
 
 module.exports = router;

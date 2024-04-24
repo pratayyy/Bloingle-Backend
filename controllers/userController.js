@@ -51,3 +51,18 @@ exports.updateUserPhoto = catchAsync(async (req, res, next) => {
     photo: updatedUser.personalInfo.photo,
   });
 });
+
+exports.updateMe = catchAsync(async (req, res, next) => {
+  const { username, bio, socialLinks } = req.body;
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user,
+    { 'personalInfo.username': username, 'personalInfo.bio': bio, socialLinks },
+    { new: true, runValidators: true },
+  );
+
+  res.status(200).json({
+    status: 'success',
+    updatedUser,
+  });
+});
