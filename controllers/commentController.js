@@ -8,7 +8,7 @@ const Notification = require('../models/notificationModel');
 exports.createComment = catchAsync(async (req, res, next) => {
   const { user } = req;
 
-  const { blogId, blogAuthor, content, replyingTo } = req.body;
+  const { blogId, blogAuthor, content, replyingTo, notificationId } = req.body;
 
   if (!content.length)
     return next(new AppError('Write something to leave a comment', 403));
@@ -55,6 +55,13 @@ exports.createComment = catchAsync(async (req, res, next) => {
     );
 
     notificationObj.notificationFor = replyingToCommentDoc.commentedBy._id;
+
+    if (notificationId) {
+      await Notification.findOneAndUpdate(
+        { _id: notificationId },
+        { reply: comment._id },
+      );
+    }
   }
 
   await Notification.create(notificationObj);
