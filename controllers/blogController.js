@@ -71,7 +71,12 @@ exports.createBlog = catchAsync(async (req, res, next) => {
 });
 
 exports.getBlogCount = catchAsync(async (req, res, next) => {
-  const filter = { draft: false, ...req.query };
+  let filter = { draft: false, ...req.query };
+
+  if (req.user) {
+    const { title, draft } = req.query;
+    filter = { author: req.user, draft, title: new RegExp(title, 'i') };
+  }
 
   const totalDocs = await Blog.countDocuments(filter);
 
@@ -82,7 +87,12 @@ exports.getBlogCount = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllBlog = catchAsync(async (req, res, next) => {
-  const filter = { draft: false };
+  let filter = { draft: false };
+
+  if (req.user) {
+    const { query, draft } = req.query;
+    filter = { author: req.user, draft, title: new RegExp(query, 'i') };
+  }
 
   const features = new APIFeatures(Blog.find(filter), req.query)
     .filter()
@@ -123,6 +133,26 @@ exports.getBlog = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     blog,
+  });
+});
+
+exports.deleteBlog = catchAsync(async (req, res, next) => {
+  const { user } = req;
+  const { slug } = req.params;
+
+  const blog = await Blog.findOneAndDelete({ slug });
+
+  await Notification.deleteMany({ blog: blog._id });
+
+  await Comment.deleteMany({ blogId: blog._id });
+
+  await User.findOneAndUpdate(
+    { _id: user },
+    { $pull: { blog: blog._id }, $inc: { 'accountInfo.totalPosts': -1 } },
+  );
+
+  res.status(204).json({
+    status: 'success',
   });
 });
 

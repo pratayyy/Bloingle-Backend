@@ -6,7 +6,7 @@ class APIFeatures {
 
   filter() {
     let queryObj = { ...this.queryString };
-    const excludedFields = ['page', 'sort', 'limit', 'skip', 'fields'];
+    const excludedFields = ['page', 'sort', 'limit', 'skip', 'fields', 'draft'];
     excludedFields.forEach((el) => delete queryObj[el]);
 
     let queryStr = JSON.stringify(queryObj);
@@ -23,7 +23,6 @@ class APIFeatures {
       }
     });
 
-    // this.query = this.query.find(JSON.parse(queryStr));
     this.query = this.query.find(queryObj);
 
     return this;
