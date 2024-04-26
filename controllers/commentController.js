@@ -109,7 +109,7 @@ const deleteComments = async (id) => {
 
   await Notification.findOneAndDelete({ comment: id });
 
-  await Notification.findOneAndDelete({ reply: id });
+  await Notification.findOneAndUpdate({ reply: id }, { $unset: { reply: 1 } });
 
   await Blog.findOneAndUpdate(
     { _id: comment.blogId },
