@@ -48,6 +48,10 @@ exports.getAllNotifications = catchAsync(async (req, res, next) => {
     .sort({ createdAt: -1 })
     .select('createdAt type seen reply');
 
+  await Notification.updateMany(findQuery, { seen: true })
+    .skip(skipDocs)
+    .limit(maxLimit);
+
   res.status(200).json({
     status: 'success',
     results: notifications.length,
